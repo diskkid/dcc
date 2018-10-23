@@ -1,0 +1,7 @@
+[package]
+name = "dcc"
+version = "0.1.0"
+authors = ["Daisuke Koide <disk2id@gmail.com>"]
+edition = "2018"
+
+[dependencies]
