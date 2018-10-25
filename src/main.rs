@@ -40,6 +40,16 @@ impl Tree {
     }
 }
 
+enum IR {
+    IMM(usize, i64),
+    MOV(usize, usize),
+    RETURN(usize),
+    ADD(usize, usize),
+    SUB(usize, usize),
+    KILL(usize),
+    NOP,
+}
+
 fn tokenize(program: String) -> Vec<Token> {
     let mut chars = program.chars().peekable();
     let mut tokens = vec![];
@@ -110,34 +120,124 @@ fn expr<'a, I: Iterator<Item = &'a Token>>(mut tokens: &mut Peekable<I>) -> Tree
     lhs
 }
 
-fn gen(tree: Tree) -> String {
+fn gen_x86(instructions: Vec<IR>) {
     let regs = ["rdi", "rsi", "r10", "r11", "r12", "r13", "r14", "r15"];
-    let mut cur = 0;
-    gen_main(tree, &regs, &mut cur)
+    for ir in instructions {
+        match ir {
+            IR::IMM(lhs, rhs) => {
+                println!("  mov {}, {}", regs[lhs], rhs);
+            },
+            IR::MOV(lhs, rhs) => {
+                println!("  mov {}, {}", regs[lhs], regs[rhs]);
+            },
+            IR::RETURN(lhs) => {
+                println!("  mov rax, {}", regs[lhs]);
+                println!("  ret");
+            },
+            IR::ADD(lhs, rhs) => {
+                println!("  add {}, {}", regs[lhs], regs[rhs]);
+            },
+            IR::SUB(lhs, rhs) => {
+                println!("  sub {}, {}", regs[lhs], regs[rhs]);
+            },
+            IR::KILL(_) => {},
+            IR::NOP => {},
+        }
+    }
 }
 
-fn gen_main(tree: Tree, regs: &[&str], mut cur: &mut usize) -> String {
+fn gen_ir(tree: Tree) -> Vec<IR> {
+    let mut instructions = vec![];
+    let mut cur = 0;
+    let r = gen_ir_sub(tree, &mut instructions, &mut cur);
+    instructions.push(IR::RETURN(r));
+    instructions
+}
+
+fn gen_ir_sub(tree: Tree, mut instructions: &mut Vec<IR>, mut cur: &mut usize) -> usize {
     match tree {
         Tree::Number(v) => {
-            let reg = regs[*cur];
+            let reg = *cur;
             *cur += 1;
-            println!("  mov {}, {}", reg, v);
-            reg.to_string()
-        }
+            instructions.push(IR::IMM(reg, v));
+            reg
+        },
         Tree::Node(op, lhs, rhs) => {
-            let dst = gen_main(*lhs, &regs, &mut cur);
-            let src = gen_main(*rhs, &regs, &mut cur);
+            let dst = gen_ir_sub(*lhs, &mut instructions, &mut cur);
+            let src = gen_ir_sub(*rhs, &mut instructions, &mut cur);
             match op {
                 Op::Plus => {
-                    println!("  add {}, {}", dst, src);
-                    dst.to_string()
+                    instructions.push(IR::ADD(dst, src));
                 },
                 Op::Minus => {
-                    println!("  sub {}, {}", dst, src);
-                    dst.to_string()
+                    instructions.push(IR::SUB(dst, src));
                 },
             }
+            instructions.push(IR::KILL(src));
+            dst
         },
+    }
+}
+
+fn alloc(reg_map: &mut [Option<usize>], used: &mut [bool], ir_reg: usize) -> usize {
+    let regs = ["rdi", "rsi", "r10", "r11", "r12", "r13", "r14", "r15"];
+
+    match reg_map[ir_reg] {
+        Some(r) => r,
+        None => {
+            for i in 0..regs.len() {
+                if used[i] {
+                    continue
+                } else {
+                    used[i] = true;
+                    reg_map[ir_reg] = Some(i);
+                    return i
+                }
+            }
+            panic!("Could not assign register");
+        },
+    }
+}
+
+fn kill(used: &mut [bool], r: usize) {
+    used[r] = false;
+}
+
+fn alloc_regs(instructions: &mut Vec<IR>, mut reg_map: &mut [Option<usize>]) {
+    let mut used = [false;1000];
+    for ir in instructions {
+        match ir {
+            IR::IMM(lhs, rhs) => {
+                *ir = IR::IMM(alloc(&mut reg_map, &mut used, *lhs), *rhs);
+            },
+            IR::MOV(lhs, rhs) => {
+                *ir = IR::MOV(alloc(&mut reg_map, &mut used, *lhs), alloc(&mut reg_map, &mut used, *rhs));
+            },
+            IR::ADD(lhs, rhs) => {
+                *ir = IR::ADD(alloc(&mut reg_map, &mut used, *lhs), alloc(&mut reg_map, &mut used, *rhs));
+            },
+            IR::SUB(lhs, rhs) => {
+                *ir = IR::SUB(alloc(&mut reg_map, &mut used, *lhs), alloc(&mut reg_map, &mut used, *rhs));
+            },
+            IR::RETURN(lhs) => {
+                match reg_map[*lhs] {
+                    Some(r) => {
+                        kill(&mut used, r);
+                    },
+                    None => panic!("Used register is not assigned.")
+                }
+            },
+            IR::KILL(lhs) => {
+                match reg_map[*lhs] {
+                    Some(r) => {
+                        kill(&mut used, r);
+                    },
+                    None => panic!("Used register is not assigned.")
+                }
+                *ir = IR::NOP;
+            },
+            IR::NOP => {},
+        }
     }
 }
 
@@ -147,12 +247,14 @@ fn main() {
         let tokens = tokenize(program);
         let mut tokens = tokens.iter().peekable();
         let tree = expr(&mut tokens);
+        let mut instructions = gen_ir(tree);
+        let mut reg_map = [None;1000];
+        alloc_regs(&mut instructions, &mut reg_map);
 
         // Print the prologue
         println!(".intel_syntax noprefix");
         println!(".global main");
         println!("main:");
-        println!("  mov rax, {}", gen(tree));
-        println!("  ret");
+        gen_x86(instructions);
     }
 }
