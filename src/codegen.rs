@@ -20,6 +20,11 @@ pub fn gen_x86(instructions: Vec<IR>) {
             IR::SUB(lhs, rhs) => {
                 println!("  sub {}, {}", regs[lhs], regs[rhs]);
             },
+            IR::MUL(lhs, rhs) => {
+                println!("  mov rax, {}", regs[rhs]);
+                println!("  mul {}", regs[lhs]);
+                println!("  mov {}, rax", regs[lhs]);
+            },
             IR::KILL(_) => {},
             IR::NOP => {},
         }

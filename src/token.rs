@@ -3,6 +3,7 @@ pub enum TokenType {
     Number(i64),
     Plus,
     Minus,
+    Mul,
     EOF,
 }
 
@@ -30,6 +31,12 @@ pub fn tokenize(program: String) -> Vec<Token> {
                     input: c.to_string()
                 });
             },
+            '*' => {
+                tokens.push(Token{
+                    t: TokenType::Mul,
+                    input: c.to_string()
+                });
+            },
             '0'...'9' => {
                 let mut num = c.to_string();
                 loop {
@@ -54,5 +61,6 @@ pub fn tokenize(program: String) -> Vec<Token> {
             _ => panic!("Unexpected char {}", c)
         }
     }
+    tokens.push(Token{t: TokenType::EOF, input: String::from("")});
     tokens
 }

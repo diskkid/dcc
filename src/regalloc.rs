@@ -25,7 +25,7 @@ fn kill(used: &mut [bool], r: usize) {
 }
 
 pub fn alloc_regs(instructions: &mut Vec<IR>, mut reg_map: &mut [Option<usize>]) {
-    let mut used = [false;1000];
+    let mut used = [false;8];
     for ir in instructions {
         match ir {
             IR::IMM(lhs, rhs) => {
@@ -48,6 +48,12 @@ pub fn alloc_regs(instructions: &mut Vec<IR>, mut reg_map: &mut [Option<usize>])
             },
             IR::SUB(lhs, rhs) => {
                 *ir = IR::SUB(
+                    alloc(&mut reg_map, &mut used, *lhs),
+                    alloc(&mut reg_map, &mut used, *rhs)
+                );
+            },
+            IR::MUL(lhs, rhs) => {
+                *ir = IR::MUL(
                     alloc(&mut reg_map, &mut used, *lhs),
                     alloc(&mut reg_map, &mut used, *rhs)
                 );

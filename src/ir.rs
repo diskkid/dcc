@@ -1,11 +1,13 @@
 use super::parse::{Tree, Op};
 
+#[derive(Debug)]
 pub enum IR {
     IMM(usize, i64),
     MOV(usize, usize),
     RETURN(usize),
     ADD(usize, usize),
     SUB(usize, usize),
+    MUL(usize, usize),
     KILL(usize),
     NOP,
 }
@@ -37,6 +39,9 @@ pub fn gen_ir_sub(tree: Tree,
                 },
                 Op::Minus => {
                     instructions.push(IR::SUB(dst, src));
+                },
+                Op::Mul => {
+                    instructions.push(IR::MUL(dst, src));
                 },
             }
             instructions.push(IR::KILL(src));

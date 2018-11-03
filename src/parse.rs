@@ -11,6 +11,7 @@ pub enum Tree {
 pub enum Op {
     Plus,
     Minus,
+    Mul,
 }
 
 impl Tree {
@@ -35,23 +36,45 @@ where I: Iterator<Item = &'a Token> {
             _ => panic!("Unexpected token {:?}", token),
         }
     } else {
-        panic!("No token");
+        panic!("No token found in number()")
     }
+}
+
+pub fn mul<'a, I>(mut tokens: &mut Peekable<I>) -> Tree
+where I: Iterator<Item = &'a Token> {
+    let mut lhs = number(&mut tokens);
+    while let Some(token) = tokens.peek() {
+        match token.t {
+            TokenType::Mul => {
+                tokens.next();
+                let rhs = number(&mut tokens);
+                lhs = Tree::new(Op::Mul, lhs, rhs)
+            },
+            _ => return lhs,
+        }
+    }
+    panic!("No token found in mul()")
 }
 
 pub fn expr<'a, I>(mut tokens: &mut Peekable<I>) -> Tree
 where I: Iterator<Item = &'a Token> {
-    let mut lhs = number(&mut tokens);
-    while let Some(token) = tokens.next() {
-        let op = match token.t {
-            TokenType::Plus => Op::Plus,
-            TokenType::Minus => Op::Minus,
-            _ => panic!("Unexpected token {:?}", token),
-        };
-        let rhs = number(&mut tokens);
-        lhs = Tree::new(op, lhs, rhs);
+    let mut lhs = mul(&mut tokens);
+    while let Some(token) = tokens.peek() {
+        match token.t {
+            TokenType::Plus => {
+                tokens.next();
+                let rhs = mul(&mut tokens);
+                lhs = Tree::new(Op::Plus, lhs, rhs)
+            },
+            TokenType::Minus => {
+                tokens.next();
+                let rhs = mul(&mut tokens);
+                lhs = Tree::new(Op::Minus, lhs, rhs)
+            },
+            _ => return lhs
+        }
     }
-    lhs
+    panic!("No token found in expr()")
 }
 
 pub fn parse(tokens: Vec<Token>) -> Tree {
