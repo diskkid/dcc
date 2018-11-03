@@ -8,6 +8,7 @@ pub enum IR {
     ADD(usize, usize),
     SUB(usize, usize),
     MUL(usize, usize),
+    DIV(usize, usize),
     KILL(usize),
     NOP,
 }
@@ -42,6 +43,9 @@ pub fn gen_ir_sub(tree: Tree,
                 },
                 Op::Mul => {
                     instructions.push(IR::MUL(dst, src));
+                },
+                Op::Div => {
+                    instructions.push(IR::DIV(dst, src));
                 },
             }
             instructions.push(IR::KILL(src));

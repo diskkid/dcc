@@ -58,6 +58,12 @@ pub fn alloc_regs(instructions: &mut Vec<IR>, mut reg_map: &mut [Option<usize>])
                     alloc(&mut reg_map, &mut used, *rhs)
                 );
             },
+            IR::DIV(lhs, rhs) => {
+                *ir = IR::DIV(
+                    alloc(&mut reg_map, &mut used, *lhs),
+                    alloc(&mut reg_map, &mut used, *rhs)
+                );
+            },
             IR::RETURN(lhs) => {
                 match reg_map[*lhs] {
                     Some(r) => {

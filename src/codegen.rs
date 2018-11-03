@@ -25,6 +25,12 @@ pub fn gen_x86(instructions: Vec<IR>) {
                 println!("  mul {}", regs[lhs]);
                 println!("  mov {}, rax", regs[lhs]);
             },
+            IR::DIV(lhs, rhs) => {
+                println!("  mov rax, {}", regs[lhs]);
+                println!("  cqo");
+                println!("  div {}", regs[rhs]);
+                println!("  mov {}, rax", regs[lhs]);
+            },
             IR::KILL(_) => {},
             IR::NOP => {},
         }

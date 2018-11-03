@@ -12,6 +12,7 @@ pub enum Op {
     Plus,
     Minus,
     Mul,
+    Div,
 }
 
 impl Tree {
@@ -49,6 +50,11 @@ where I: Iterator<Item = &'a Token> {
                 tokens.next();
                 let rhs = number(&mut tokens);
                 lhs = Tree::new(Op::Mul, lhs, rhs)
+            },
+            TokenType::Div => {
+                tokens.next();
+                let rhs = number(&mut tokens);
+                lhs = Tree::new(Op::Div, lhs, rhs)
             },
             _ => return lhs,
         }

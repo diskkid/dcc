@@ -4,6 +4,7 @@ pub enum TokenType {
     Plus,
     Minus,
     Mul,
+    Div,
     EOF,
 }
 
@@ -34,6 +35,12 @@ pub fn tokenize(program: String) -> Vec<Token> {
             '*' => {
                 tokens.push(Token{
                     t: TokenType::Mul,
+                    input: c.to_string()
+                });
+            },
+            '/' => {
+                tokens.push(Token{
+                    t: TokenType::Div,
                     input: c.to_string()
                 });
             },
