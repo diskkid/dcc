@@ -16,16 +16,16 @@ pub enum Op {
 }
 
 impl Tree {
-    pub fn new(op: Op, lhs: Tree, rhs: Tree) -> Tree {
+    fn new(op: Op, lhs: Tree, rhs: Tree) -> Tree {
         Tree::Node(op, Box::new(lhs), Box::new(rhs))
     }
 
-    pub fn new_num_node(value: i64) -> Tree {
+    fn new_num_node(value: i64) -> Tree {
         Tree::Number(value)
     }
 }
 
-pub fn number<'a, I>(tokens: &mut Peekable<I>) -> Tree
+fn number<'a, I>(tokens: &mut Peekable<I>) -> Tree
 where
     I: Iterator<Item = &'a Token>,
 {
@@ -39,7 +39,7 @@ where
     }
 }
 
-pub fn mul<'a, I>(mut tokens: &mut Peekable<I>) -> Tree
+fn mul<'a, I>(mut tokens: &mut Peekable<I>) -> Tree
 where
     I: Iterator<Item = &'a Token>,
 {
@@ -62,7 +62,7 @@ where
     panic!("No token found in mul()")
 }
 
-pub fn expr<'a, I>(mut tokens: &mut Peekable<I>) -> Tree
+fn expr<'a, I>(mut tokens: &mut Peekable<I>) -> Tree
 where
     I: Iterator<Item = &'a Token>,
 {

@@ -21,7 +21,7 @@ pub fn gen_ir(tree: Tree) -> Vec<IR> {
     instructions
 }
 
-pub fn gen_ir_sub(tree: Tree, mut instructions: &mut Vec<IR>, mut cur: &mut usize) -> usize {
+fn gen_ir_sub(tree: Tree, mut instructions: &mut Vec<IR>, mut cur: &mut usize) -> usize {
     match tree {
         Tree::Number(v) => {
             let reg = *cur;
