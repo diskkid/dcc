@@ -4,6 +4,7 @@ use std::iter::Peekable;
 #[derive(Debug)]
 pub enum Tree {
     Number(i64),
+    ReturnStmt(Box<Tree>),
     Node(Op, Box<Tree>, Box<Tree>),
 }
 
@@ -85,7 +86,28 @@ where
     panic!("No token found in expr()")
 }
 
+fn stmt<'a, I>(mut tokens: &mut Peekable<I>) -> Tree
+where I: Iterator<Item = &'a Token> {
+    expect(&mut tokens, TokenType::Return);
+    tokens.next();
+    let tree = expr(&mut tokens);
+    expect(&mut tokens, TokenType::Semicolon);
+    tokens.next();
+    Tree::ReturnStmt(Box::new(tree))
+}
+
+fn expect<'a, I>(mut tokens: &mut Peekable<I>, token_type: TokenType)
+where I: Iterator<Item = &'a Token> {
+    if let Some(token) = tokens.peek() {
+        if token.t != token_type {
+            panic!("Expect {:?} but got {:?}", token_type, token.t);
+        }
+    } else {
+        panic!("No token found");
+    }
+}
+
 pub fn parse(tokens: Vec<Token>) -> Tree {
     let mut tokens = tokens.iter().peekable();
-    expr(&mut tokens)
+    stmt(&mut tokens)
 }

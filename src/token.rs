@@ -1,10 +1,12 @@
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum TokenType {
     Number(i64),
     Plus,
     Minus,
     Mul,
     Div,
+    Return,
+    Semicolon,
     EOF,
 }
 
@@ -20,6 +22,12 @@ pub fn tokenize(program: String) -> Vec<Token> {
     while let Some(c) = chars.next() {
         match c {
             ' ' => continue,
+            ';' => {
+                tokens.push(Token{
+                    t: TokenType::Semicolon,
+                    input: c.to_string(),
+                });
+            },
             '+' => {
                 tokens.push(Token {
                     t: TokenType::Plus,
@@ -64,8 +72,32 @@ pub fn tokenize(program: String) -> Vec<Token> {
                     t: TokenType::Number(val),
                     input: num,
                 });
-            }
-            _ => panic!("Unexpected char {}", c),
+            },
+            c => {
+                let mut ident = c.to_string();
+                loop {
+                    if let Some(c) = chars.peek() {
+                        if *c == ' ' || *c == ';' {
+                            break;
+                        }
+                        ident.push(*c);
+                        chars.next();
+                    } else {
+                        break;
+                    }
+                }
+                match ident.as_str() {
+                    "return" => {
+                        tokens.push(Token{
+                            t: TokenType::Return,
+                            input: ident,
+                        });
+                    },
+                    _ => {
+                        panic!("identifier is not implemented yet");
+                    },
+                }
+            },
         }
     }
     tokens.push(Token {

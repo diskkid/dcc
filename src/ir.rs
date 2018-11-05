@@ -16,8 +16,7 @@ pub enum IR {
 pub fn gen_ir(tree: Tree) -> Vec<IR> {
     let mut instructions = vec![];
     let mut cur = 0;
-    let r = gen_ir_sub(tree, &mut instructions, &mut cur);
-    instructions.push(IR::RETURN(r));
+    gen_ir_sub(tree, &mut instructions, &mut cur);
     instructions
 }
 
@@ -48,6 +47,11 @@ fn gen_ir_sub(tree: Tree, mut instructions: &mut Vec<IR>, mut cur: &mut usize) -
             }
             instructions.push(IR::KILL(src));
             dst
-        }
+        },
+        Tree::ReturnStmt(expr) => {
+            let expr = gen_ir_sub(*expr, &mut instructions, &mut cur);
+            instructions.push(IR::RETURN(expr));
+            expr
+        },
     }
 }
