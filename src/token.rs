@@ -21,29 +21,29 @@ pub fn tokenize(program: String) -> Vec<Token> {
         match c {
             ' ' => continue,
             '+' => {
-                tokens.push(Token{
+                tokens.push(Token {
                     t: TokenType::Plus,
-                    input: c.to_string()
+                    input: c.to_string(),
                 });
-            },
+            }
             '-' => {
-                tokens.push(Token{
+                tokens.push(Token {
                     t: TokenType::Minus,
-                    input: c.to_string()
+                    input: c.to_string(),
                 });
-            },
+            }
             '*' => {
-                tokens.push(Token{
+                tokens.push(Token {
                     t: TokenType::Mul,
-                    input: c.to_string()
+                    input: c.to_string(),
                 });
-            },
+            }
             '/' => {
-                tokens.push(Token{
+                tokens.push(Token {
                     t: TokenType::Div,
-                    input: c.to_string()
+                    input: c.to_string(),
                 });
-            },
+            }
             '0'...'9' => {
                 let mut num = c.to_string();
                 loop {
@@ -51,7 +51,7 @@ pub fn tokenize(program: String) -> Vec<Token> {
                         match c {
                             '0'...'9' => {
                                 num.push(*c);
-                            },
+                            }
                             _ => break,
                         }
                         chars.next();
@@ -60,14 +60,17 @@ pub fn tokenize(program: String) -> Vec<Token> {
                     }
                 }
                 let val = num.parse::<i64>().unwrap();
-                tokens.push(Token{
+                tokens.push(Token {
                     t: TokenType::Number(val),
                     input: num,
                 });
-            },
-            _ => panic!("Unexpected char {}", c)
+            }
+            _ => panic!("Unexpected char {}", c),
         }
     }
-    tokens.push(Token{t: TokenType::EOF, input: String::from("")});
+    tokens.push(Token {
+        t: TokenType::EOF,
+        input: String::from(""),
+    });
     tokens
 }

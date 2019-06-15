@@ -1,5 +1,5 @@
-use std::iter::Peekable;
 use super::token::{Token, TokenType};
+use std::iter::Peekable;
 
 #[derive(Debug)]
 pub enum Tree {
@@ -17,11 +17,7 @@ pub enum Op {
 
 impl Tree {
     pub fn new(op: Op, lhs: Tree, rhs: Tree) -> Tree {
-        Tree::Node(
-            op,
-            Box::new(lhs),
-            Box::new(rhs)
-        )
+        Tree::Node(op, Box::new(lhs), Box::new(rhs))
     }
 
     pub fn new_num_node(value: i64) -> Tree {
@@ -30,7 +26,9 @@ impl Tree {
 }
 
 pub fn number<'a, I>(tokens: &mut Peekable<I>) -> Tree
-where I: Iterator<Item = &'a Token> {
+where
+    I: Iterator<Item = &'a Token>,
+{
     if let Some(token) = tokens.next() {
         match token.t {
             TokenType::Number(v) => Tree::new_num_node(v),
@@ -42,7 +40,9 @@ where I: Iterator<Item = &'a Token> {
 }
 
 pub fn mul<'a, I>(mut tokens: &mut Peekable<I>) -> Tree
-where I: Iterator<Item = &'a Token> {
+where
+    I: Iterator<Item = &'a Token>,
+{
     let mut lhs = number(&mut tokens);
     while let Some(token) = tokens.peek() {
         match token.t {
@@ -50,12 +50,12 @@ where I: Iterator<Item = &'a Token> {
                 tokens.next();
                 let rhs = number(&mut tokens);
                 lhs = Tree::new(Op::Mul, lhs, rhs)
-            },
+            }
             TokenType::Div => {
                 tokens.next();
                 let rhs = number(&mut tokens);
                 lhs = Tree::new(Op::Div, lhs, rhs)
-            },
+            }
             _ => return lhs,
         }
     }
@@ -63,7 +63,9 @@ where I: Iterator<Item = &'a Token> {
 }
 
 pub fn expr<'a, I>(mut tokens: &mut Peekable<I>) -> Tree
-where I: Iterator<Item = &'a Token> {
+where
+    I: Iterator<Item = &'a Token>,
+{
     let mut lhs = mul(&mut tokens);
     while let Some(token) = tokens.peek() {
         match token.t {
@@ -71,13 +73,13 @@ where I: Iterator<Item = &'a Token> {
                 tokens.next();
                 let rhs = mul(&mut tokens);
                 lhs = Tree::new(Op::Plus, lhs, rhs)
-            },
+            }
             TokenType::Minus => {
                 tokens.next();
                 let rhs = mul(&mut tokens);
                 lhs = Tree::new(Op::Minus, lhs, rhs)
-            },
-            _ => return lhs
+            }
+            _ => return lhs,
         }
     }
     panic!("No token found in expr()")
